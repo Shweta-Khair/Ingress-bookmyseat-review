@@ -1,0 +1,72 @@
+# Global settings
+namespace:
+  name: movie
+  create: false  # Reuse existing movie namespace
+
+# StorageClass configuration
+storageClass:
+  name: gp2-immediate
+  provisioner: kubernetes.io/aws-ebs
+  parameters:
+    type: gp2
+  volumeBindingMode: Immediate
+  reclaimPolicy: Delete
+
+# MySQL Database configuration
+mysql:
+  enabled: true
+  name: review-db
+  image:
+    repository: mysql
+    tag: "8.0"
+  replicas: 1
+  database: review_db
+  user: reviewuser
+  password: reviewpass
+  rootPassword: rootpass
+  port: 3306
+  pvc:
+    name: review-db-pvc
+    storageClassName: gp2-immediate
+    size: 1Gi
+    accessModes:
+      - ReadWriteOnce
+  livenessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    initialDelaySeconds: 20
+    periodSeconds: 10
+
+# Review Service (Spring Boot) configuration
+reviewService:
+  enabled: true
+  name: review-service
+  image:
+    repository: 543816070942.dkr.ecr.us-east-1.amazonaws.com/bookmyseat-review-s
+    tag: "1"
+  replicas: 1
+  port: 8082
+  env:
+    springProfilesActive: docker
+    springDatasourceUrl: jdbc:mysql://review-db:3306/review_db
+    springDatasourceUsername: reviewuser
+    springDatasourcePassword: reviewpass
+    movieServiceBaseUrl: http://movie-service.movie.svc.cluster.local:8081
+    zipkinEndpoint: http://zipkin:9411/api/v2/spans
+  service:
+    type: ClusterIP
+    port: 8082
+    targetPort: 8082
+  readinessProbe:
+    initialDelaySeconds: 20
+    periodSeconds: 10
+  livenessProbe:
+    initialDelaySeconds: 60
+    periodSeconds: 20
+
+# ConfigMap for database initialization scripts
+initScripts:
+  enabled: true
+  name: review-init-scripts
+

@@ -1,0 +1,59 @@
+{{- if .Values.reviewService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.reviewService.name }}
+  namespace: {{ .Values.namespace.name }}
+spec:
+  replicas: {{ .Values.reviewService.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.reviewService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.reviewService.name }}
+    spec:
+      initContainers:
+        - name: wait-for-review-db
+          image: {{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}
+          command:
+            - sh
+            - -c
+            - |
+              until mysqladmin ping -h {{ .Values.mysql.name }} -u {{ .Values.mysql.user }} -p{{ .Values.mysql.password }} >/dev/null 2>&1; do
+                echo "waiting for {{ .Values.mysql.name }}"
+                sleep 5
+              done
+      containers:
+        - name: {{ .Values.reviewService.name }}
+          image: {{ .Values.reviewService.image.repository }}:{{ .Values.reviewService.image.tag }}
+          ports:
+            - containerPort: {{ .Values.reviewService.port }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.reviewService.env.springProfilesActive }}
+            - name: SPRING_DATASOURCE_URL
+              value: {{ .Values.reviewService.env.springDatasourceUrl }}
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .Values.reviewService.env.springDatasourceUsername }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: {{ .Values.reviewService.env.springDatasourcePassword }}
+            - name: MOVIE_SERVICE_BASE_URL
+              value: {{ .Values.reviewService.env.movieServiceBaseUrl }}
+            - name: ZIPKIN_ENDPOINT
+              value: {{ .Values.reviewService.env.zipkinEndpoint }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.reviewService.port }}
+            initialDelaySeconds: {{ .Values.reviewService.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.reviewService.readinessProbe.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.reviewService.port }}
+            initialDelaySeconds: {{ .Values.reviewService.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.reviewService.livenessProbe.periodSeconds }}
+{{- end }}
+
