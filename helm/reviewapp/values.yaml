@@ -72,7 +72,7 @@ initScripts:
 
 # Ingress configuration (same pattern as movie-service)
 ingress:
-  enabled: true
+  enabled: false
   name: reviewapp-ingress
   host: bookmyseat.dockeroncloud.com
   pathType: Prefix
