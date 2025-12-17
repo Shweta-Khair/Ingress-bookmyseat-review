@@ -70,3 +70,26 @@ initScripts:
   enabled: true
   name: review-init-scripts
 
+# Ingress configuration (same pattern as movie-service)
+ingress:
+  enabled: true
+  name: reviewapp-ingress
+  host: bookmyseat.dockeroncloud.com
+  pathType: Prefix
+  ingressClassName: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:543816070942:certificate/3aef524d-818c-48e8-bc63-7641b73b95de
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
+  paths:
+    - path: /api/v1/reviews
+      pathType: Prefix
+      serviceName: review-service
+      servicePort: 8082
+  tls:
+    enabled: true
+    hosts: bookmyseat.dockeroncloud.com
+
