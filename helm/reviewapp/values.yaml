@@ -44,7 +44,7 @@ reviewService:
   name: review-service
   image:
     repository: 543816070942.dkr.ecr.us-east-1.amazonaws.com/bookmyseat-review-s
-    tag: "1"
+    tag: "2"
   replicas: 1
   port: 8082
   env:
