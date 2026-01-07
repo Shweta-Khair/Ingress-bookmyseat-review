@@ -81,6 +81,7 @@ ingress:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/success-codes: "200,204" # Made changes
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:543816070942:certificate/3aef524d-818c-48e8-bc63-7641b73b95de
     alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
